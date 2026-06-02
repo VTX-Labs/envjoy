@@ -1,21 +1,15 @@
 name: Publish to npm
 
-# Security model
-# --------------
-# - Manual trigger ONLY (workflow_dispatch). Never pull_request_target, never an
-#   automatic push trigger, so untrusted code can never reach the publish step.
-# - Hard guard: the job runs only on the canonical VTX-Labs repo, never on forks.
-# - Gated behind the `release` GitHub Environment, which should require a manual
-#   reviewer approval and restrict the protected `main` branch.
-# - Authenticates via OIDC TRUSTED PUBLISHING — no npm token exists. The job mints
-#   a short-lived, workflow-scoped OIDC credential; nothing long-lived to leak or
-#   rotate. Configure the trusted publisher on npmjs.com (package → Trusted
-#   Publishing → GitHub Actions, repo VTX-Labs/envjoy, workflow publish.yml,
-#   environment release).
-# - Provenance is automatic with trusted publishing (verifiable supply chain).
-# - Verifies the input version matches package.json before publishing, and
-#   refuses to republish a version that already exists on npm.
-# - Least-privilege permissions; third-party actions are pinned by commit SHA.
+# Publishes @vtx-labs/envjoy to npm via OIDC trusted publishing.
+#
+# Authentication uses short-lived, workflow-scoped OIDC credentials -- there is
+# no npm token to store, leak, or rotate, and provenance is attested
+# automatically. Manual dispatch only, gated behind the `release` environment,
+# and restricted to the canonical repository.
+#
+# One-time setup on npmjs.com: package settings -> Trusted Publishing -> add a
+# GitHub Actions publisher for VTX-Labs/envjoy, workflow publish.yml,
+# environment release.
 
 on:
   workflow_dispatch:
@@ -25,7 +19,7 @@ on:
         type: boolean
         default: false
 
-# Only the contents read + the OIDC id-token (for npm provenance) are granted.
+# contents: read to check out; id-token: write to mint the OIDC credential.
 permissions:
   contents: read
   id-token: write
@@ -38,10 +32,10 @@ jobs:
   publish:
     name: Build, verify & publish
     runs-on: ubuntu-latest
-    # Refuse to run anywhere but the canonical repo (defense-in-depth vs. forks).
+    # Run only on the canonical repository, never on a fork.
     if: ${{ github.repository == 'VTX-Labs/envjoy' }}
-    # Manual approval + secret scoping happens here. Configure this environment
-    # in repo Settings → Environments with required reviewers + branch protection.
+    # Configure required reviewers and branch protection on this environment in
+    # repo Settings -> Environments.
     environment:
       name: release
       url: https://www.npmjs.com/package/@vtx-labs/envjoy
@@ -63,8 +57,8 @@ jobs:
           registry-url: https://registry.npmjs.org
           cache: pnpm
 
-      # Trusted publishing requires npm >= 11.5.1; pin a current npm explicitly.
-      - name: Update npm (OIDC trusted publishing support)
+      # Trusted publishing requires npm >= 11.5.1.
+      - name: Update npm
         run: npm install -g npm@latest
 
       - name: Install dependencies
@@ -86,12 +80,11 @@ jobs:
             exit 1
           fi
 
-      # No NODE_AUTH_TOKEN: auth is via OIDC trusted publishing. npm reads the
-      # id-token minted by `id-token: write` above. Provenance is automatic.
-      - name: Publish (trusted publishing, public)
+      # No token needed: npm authenticates with the OIDC id-token.
+      - name: Publish
         if: ${{ inputs.dry-run == false }}
         run: npm publish --access public
 
       - name: Dry run summary
         if: ${{ inputs.dry-run == true }}
-        run: echo "Dry run complete — build/test/verify passed; publish skipped."
+        run: echo "Dry run complete. Build, test, and verify passed; publish skipped."
