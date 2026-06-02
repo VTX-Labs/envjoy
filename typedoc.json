@@ -1,0 +1,19 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": ["src/index.ts"],
+  "out": "docs",
+  "name": "envjoy",
+  "readme": "README.md",
+  "includeVersion": true,
+  "excludePrivate": true,
+  "excludeInternal": true,
+  "categorizeByGroup": true,
+  "hideGenerator": true,
+  "plugin": ["typedoc-material-theme"],
+  "themeColor": "#3182ce",
+  "navigationLinks": {
+    "npm": "https://www.npmjs.com/package/@vtx-labs/envjoy",
+    "GitHub": "https://github.com/VTX-Labs/envjoy",
+    "VTX Labs": "https://vtxlabs.dev"
+  }
+}

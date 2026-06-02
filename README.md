@@ -13,6 +13,7 @@
 
 [![npm](https://img.shields.io/npm/v/@vtx-labs/envjoy?color=3182ce)](https://www.npmjs.com/package/@vtx-labs/envjoy)
 [![CI](https://github.com/VTX-Labs/envjoy/actions/workflows/ci.yml/badge.svg)](https://github.com/VTX-Labs/envjoy/actions)
+[![Docs](https://img.shields.io/badge/docs-API_reference-3182ce)](https://vtx-labs.github.io/envjoy/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-3182ce.svg)](LICENSE)
 [![Zero dependencies](https://img.shields.io/badge/dependencies-0-3182ce)](package.json)
 

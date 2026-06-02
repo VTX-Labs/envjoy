@@ -1,0 +1,57 @@
+name: Docs
+
+# Builds the TypeDoc API reference and publishes it to GitHub Pages.
+# One-time setup: repo Settings → Pages → Source: "GitHub Actions".
+# The live site is then https://vtx-labs.github.io/envjoy/.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "README.md"
+      - "typedoc.json"
+      - ".github/workflows/docs.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One concurrent Pages deployment; don't cancel an in-flight publish.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Build API docs (TypeDoc)
+        run: pnpm docs
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
