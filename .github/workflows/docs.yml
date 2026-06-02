@@ -41,7 +41,7 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - name: Build API docs (TypeDoc)
-        run: pnpm docs
+        run: pnpm run docs
       - uses: actions/upload-pages-artifact@v3
         with:
           path: docs
