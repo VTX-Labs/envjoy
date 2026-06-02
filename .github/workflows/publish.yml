@@ -6,10 +6,6 @@ name: Publish to npm
 # no npm token to store, leak, or rotate, and provenance is attested
 # automatically. Manual dispatch only, gated behind the `release` environment,
 # and restricted to the canonical repository.
-#
-# One-time setup on npmjs.com: package settings -> Trusted Publishing -> add a
-# GitHub Actions publisher for VTX-Labs/envjoy, workflow publish.yml,
-# environment release.
 
 on:
   workflow_dispatch:
