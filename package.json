@@ -1,0 +1,60 @@
+{
+  "name": "@vtx-labs/envjoy",
+  "version": "0.1.0",
+  "description": "Zero-config CLI that keeps your .env in sync with .env.example — finds missing, extra, and empty keys, and fixes them.",
+  "keywords": [
+    "env",
+    "dotenv",
+    "env-example",
+    "environment-variables",
+    "cli",
+    "config",
+    "validation",
+    "ci",
+    "diff",
+    "vtx-labs"
+  ],
+  "homepage": "https://github.com/VTX-Labs/envjoy#readme",
+  "bugs": "https://github.com/VTX-Labs/envjoy/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/VTX-Labs/envjoy.git"
+  },
+  "license": "MIT",
+  "author": "VTX Labs (https://vtxlabs.dev)",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "envjoy": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsx src/cli.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepublishOnly": "pnpm typecheck && pnpm test && pnpm build"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsup": "^8.3.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  },
+  "packageManager": "pnpm@10.6.5"
+}

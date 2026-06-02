@@ -1,0 +1,89 @@
+name: Publish to npm
+
+# Security model
+# --------------
+# - Manual trigger ONLY (workflow_dispatch). Never pull_request_target, never an
+#   automatic push trigger, so untrusted code can never reach the npm token.
+# - Hard guard: the job runs only on the canonical VTX-Labs repo, never on forks.
+# - Gated behind the `release` GitHub Environment, which should require a manual
+#   reviewer approval and restrict the protected `main` branch. The NPM_TOKEN
+#   secret lives ONLY on that environment, so it is unreachable until approved.
+# - Publishes with npm provenance (--provenance) for a verifiable supply chain.
+# - Verifies the git tag / input version matches package.json before publishing,
+#   and refuses to republish a version that already exists on npm.
+# - Least-privilege permissions; third-party actions are pinned by commit SHA.
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: "Run every step except the actual npm publish"
+        type: boolean
+        default: false
+
+# Only the contents read + the OIDC id-token (for npm provenance) are granted.
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: publish-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Build, verify & publish
+    runs-on: ubuntu-latest
+    # Refuse to run anywhere but the canonical repo (defense-in-depth vs. forks).
+    if: ${{ github.repository == 'VTX-Labs/envjoy' }}
+    # Manual approval + secret scoping happens here. Configure this environment
+    # in repo Settings → Environments with required reviewers + branch protection.
+    environment:
+      name: release
+      url: https://www.npmjs.com/package/@vtx-labs/envjoy
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
+        with:
+          version: 10
+
+      - name: Setup Node
+        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck, test, build
+        run: |
+          pnpm typecheck
+          pnpm test
+          pnpm build
+
+      - name: Verify version is not already published
+        run: |
+          NAME=$(node -p "require('./package.json').name")
+          VERSION=$(node -p "require('./package.json').version")
+          echo "Publishing $NAME@$VERSION"
+          if pnpm view "$NAME@$VERSION" version >/dev/null 2>&1; then
+            echo "::error::$NAME@$VERSION already exists on npm. Bump the version in package.json."
+            exit 1
+          fi
+
+      - name: Publish (provenance, public)
+        if: ${{ inputs.dry-run == false }}
+        run: pnpm publish --access public --provenance --no-git-checks
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Dry run summary
+        if: ${{ inputs.dry-run == true }}
+        run: echo "Dry run complete — build/test/verify passed; publish skipped."

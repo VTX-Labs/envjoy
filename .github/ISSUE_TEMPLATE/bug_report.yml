@@ -1,0 +1,66 @@
+name: Bug report
+description: Report a reproducible problem in envjoy.
+title: "[Bug]: "
+labels: ["bug", "needs triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. A clear, reproducible bug is the fastest path to a fix.
+        Please confirm you're on the latest version and search existing issues first.
+  - type: input
+    id: version
+    attributes:
+      label: envjoy version
+      description: Output of `envjoy --version` (or the installed package version).
+      placeholder: "0.1.0"
+    validations:
+      required: true
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: A clear, one or two sentence description of the bug.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: Exact commands plus minimal `.env` / `.env.example` contents (redact secrets).
+      placeholder: |
+        1. `.env.example` contains: FOO=
+        2. `.env` contains: (empty)
+        3. Run: envjoy --check
+        4. Observe: ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected vs. actual behavior
+      description: What you expected, and what actually happened (include the exact output / exit code).
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      value: |
+        - OS:
+        - Node version:
+        - Package manager + version:
+        - How invoked (npx / global / devDependency):
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched existing issues and this is not a duplicate.
+          required: true
+        - label: I am on the latest version, or noted the version above.
+          required: true
+        - label: I redacted any real secrets from the example output.
+          required: true

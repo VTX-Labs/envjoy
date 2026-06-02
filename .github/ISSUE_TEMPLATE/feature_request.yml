@@ -1,0 +1,37 @@
+name: Feature request
+description: Suggest an improvement or new capability for envjoy.
+title: "[Feature]: "
+labels: ["enhancement", "needs triage"]
+body:
+  - type: markdown
+    attributes:
+      value: Lead with the problem you're solving — that's what we prioritize on.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem statement
+      description: What pain are you hitting? Why does it matter?
+      placeholder: "When I ___, envjoy can't ___, so I have to ___."
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: What would you like to happen? A flag/output sketch helps.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Workarounds or other approaches you've evaluated.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched existing issues and this is not a duplicate.
+          required: true
+        - label: This stays true to envjoy's scope (zero-config, bloat-free .env vs .env.example).
+          required: true
