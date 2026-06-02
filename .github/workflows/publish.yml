@@ -3,14 +3,18 @@ name: Publish to npm
 # Security model
 # --------------
 # - Manual trigger ONLY (workflow_dispatch). Never pull_request_target, never an
-#   automatic push trigger, so untrusted code can never reach the npm token.
+#   automatic push trigger, so untrusted code can never reach the publish step.
 # - Hard guard: the job runs only on the canonical VTX-Labs repo, never on forks.
 # - Gated behind the `release` GitHub Environment, which should require a manual
-#   reviewer approval and restrict the protected `main` branch. The NPM_TOKEN
-#   secret lives ONLY on that environment, so it is unreachable until approved.
-# - Publishes with npm provenance (--provenance) for a verifiable supply chain.
-# - Verifies the git tag / input version matches package.json before publishing,
-#   and refuses to republish a version that already exists on npm.
+#   reviewer approval and restrict the protected `main` branch.
+# - Authenticates via OIDC TRUSTED PUBLISHING — no npm token exists. The job mints
+#   a short-lived, workflow-scoped OIDC credential; nothing long-lived to leak or
+#   rotate. Configure the trusted publisher on npmjs.com (package → Trusted
+#   Publishing → GitHub Actions, repo VTX-Labs/envjoy, workflow publish.yml,
+#   environment release).
+# - Provenance is automatic with trusted publishing (verifiable supply chain).
+# - Verifies the input version matches package.json before publishing, and
+#   refuses to republish a version that already exists on npm.
 # - Least-privilege permissions; third-party actions are pinned by commit SHA.
 
 on:
@@ -55,9 +59,13 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
         with:
-          node-version: 20
+          node-version: 22
           registry-url: https://registry.npmjs.org
           cache: pnpm
+
+      # Trusted publishing requires npm >= 11.5.1; pin a current npm explicitly.
+      - name: Update npm (OIDC trusted publishing support)
+        run: npm install -g npm@latest
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -78,11 +86,11 @@ jobs:
             exit 1
           fi
 
-      - name: Publish (provenance, public)
+      # No NODE_AUTH_TOKEN: auth is via OIDC trusted publishing. npm reads the
+      # id-token minted by `id-token: write` above. Provenance is automatic.
+      - name: Publish (trusted publishing, public)
         if: ${{ inputs.dry-run == false }}
-        run: pnpm publish --access public --provenance --no-git-checks
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public
 
       - name: Dry run summary
         if: ${{ inputs.dry-run == true }}
