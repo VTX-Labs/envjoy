@@ -52,7 +52,7 @@
   },
   "devDependencies": {
     "@types/node": "^26.1.0",
-    "tsup": "^8.3.5",
+    "tsup": "^9.0.0",
     "tsx": "^4.19.2",
     "typedoc": "^0.28.0",
     "typedoc-material-theme": "^1.4.0",
